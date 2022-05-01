@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+}
+
+group 'org.qainsights'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
+
+    testImplementation 'us.abstracta.jmeter:jmeter-java-dsl:0.54'
+    components {
+        withModule("org.apache.jmeter:ApacheJMeter_core", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter_java", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter_http", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter_functions", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter_components", JmeterRule)
+        withModule("org.apache.jmeter:ApacheJMeter_config", JmeterRule)
+        withModule("org.apache.jmeter:jorphan", JmeterRule)
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// this is required due to JMeter open issue: https://bz.apache.org/bugzilla/show_bug.cgi?id=64465
+@CacheableRule
+class JmeterRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { it.group == "org.apache.jmeter" && it.name == "bom" }
+            }
+        }
+    }
+}
